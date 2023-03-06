@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rampart+One&family=Tenor+Sans&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+    crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+    crossorigin=""></script>
+
+    <title>ISS Map</title>
+    <style>
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Where is the ISS ?</h2>
+        <div class="values">
+            <h3>✍️ Name: <span id="name"></span></h3>
+            <h3>✍️ Visibility: <span  id="vis"></span></h3>
+            <h3>✍️ Velocity: <span  id="velo"></span> km/sec</h3>
+            <h3>✍️ Altitude: <span id="alti"></span> kms</h3>
+            <h3>✍️ Latitude: <span id="lat">0</span>°</h3>
+            <h3>✍️ Longitude: <span id="lon">0</span>°</h3>
+        </div>
+        <div id="myMap"></div>    
+    </div>
+    
+    <script>
+        
+        const map = L.map('myMap').setView([0, 0], 2);
+        const tile = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+        const attribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        
+        const tiles = L.tileLayer(tile, {
+            attribution: attribution
+        })
+        
+        tiles.addTo(map);
+        
+        const issIcon = L.icon({
+            iconUrl: './iss-ship.png',
+            iconSize: [50, 32],
+            iconAnchor: [25, 16],
+        });
+
+        const marker = L.marker([0,0],{icon: issIcon}).addTo(map);
+        const API_URL = "https://api.wheretheiss.at/v1/satellites/25544";
+
+        async function getLocation(){
+            const result = await fetch(API_URL);
+            const data = await result.json();
+            const name = data.name;
+            const velocity = (data.velocity/1000).toFixed(2);
+            const visibility =  data.visibility.toString();
+            const altitude = data.altitude.toFixed(2);
+            const latitude = data.latitude.toFixed(2);
+            const longitude = data.longitude.toFixed(2);
+
+            marker.setLatLng([latitude,longitude]);
+            
+            document.getElementById("name").textContent = name.toUpperCase();
+            document.getElementById("vis").textContent = visibility.toUpperCase();
+            document.getElementById("velo").textContent = velocity;
+            document.getElementById("alti").textContent = altitude;
+            document.getElementById("lat").textContent = latitude;
+            document.getElementById("lon").textContent = longitude;
+        }
+
+        getLocation();
+        
+        setInterval(getLocation,1000);
+    </script>
+</body>
+</html>
